@@ -34,7 +34,6 @@ router.post('/login', (req, res) => {
         //This normally happen automatically
         //But we will do it manually here
         const token = generateToken(user);
-
         res.status(200).json({
           message: `Welcome ${user.username}!`,
           //passing the token generated using JWT
