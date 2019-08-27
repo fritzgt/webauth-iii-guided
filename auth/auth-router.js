@@ -1,8 +1,10 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 
-// installed this library
+// installed JWT json web token library
 const jwt = require('jsonwebtoken');
+//Import the scret for the JWT
+const secrets = require('./config/secrets');
 
 const Users = require('../users/users-model.js');
 
@@ -28,8 +30,15 @@ router.post('/login', (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
+        //Creating a JWT token after user has been authenticated
+        //This normally happen automatically
+        //But we will do it manually here
+        const token = generateToken(user);
+
         res.status(200).json({
-          message: `Welcome ${user.username}!`
+          message: `Welcome ${user.username}!`,
+          //passing the token generated using JWT
+          token
         });
       } else {
         res.status(401).json({ message: 'Invalid Credentials' });
@@ -39,5 +48,20 @@ router.post('/login', (req, res) => {
       res.status(500).json(error);
     });
 });
+//Creating token function
+function generateToken(user) {
+  //Set basic data
+  const payload = {
+    subject: user.id,
+    username: user.username
+    //other optiona data
+  };
+  //Options object
+  const options = {
+    expiresIn: '1d'
+  };
+  // extract the secret away so it can be required and used where needed
+  return jwt.sign(payload, secrets.jwtSecret, options); // this method is synchronous
+}
 
 module.exports = router;
